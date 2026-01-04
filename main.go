@@ -4,7 +4,7 @@ import (
 	"image"
 	"os"
 	"math"
-	"math/rand"
+//	"math/rand"
 	"time"
 	"fmt"
 	"io/ioutil"
@@ -31,9 +31,15 @@ type SpriteSheet_SubTexture struct {
 	Height	int			`xml:"height,attr"`
 } 
 
-type SpriteSheet_TextureAtlas struct {
-	XMLName		xml.Name					`XML:"TextureAtlas"`
+type SpriteSheet_TileGroup struct {
+	XMLName		xml.Name					`xml:"TileGroup"`
+	Name		string						`xml:"name,attr"`
 	SubTextures	[]SpriteSheet_SubTexture	`xml:"SubTexture"`
+}
+
+type SpriteSheet_TextureAtlas struct {
+	XMLName		xml.Name					`xml:"TextureAtlas"`
+	TileGroups	[]SpriteSheet_TileGroup		`xml:"TileGroup"`
 }
 
 func loadTextureAtlas(path string) (SpriteSheet_TextureAtlas, error) {
@@ -104,6 +110,7 @@ func run() {
 		panic(err)
 	}
 
+	/*
 	var cityTiles []pixel.Rect
 	for _, texture := range atlas.SubTextures {
 		cityTiles = append(cityTiles, pixel.R(
@@ -112,21 +119,25 @@ func run() {
 			spritesheet.Bounds().Min.X + float64(texture.X + texture.Width), 
 			spritesheet.Bounds().Max.Y - float64(texture.Y)))
 	}
+			*/
 
 	// Create a batch for better drawing performance
 	batch := pixel.NewBatch(&pixel.TrianglesData{}, spritesheet)
 
 	var (
+		currentTileGroup	= 0
+		currentTile 		= 0
+
 		camPos			= pixel.ZV
 		camSpeed		= 500.0
 		camZoom			= 1.0
 		camZoomSpeed	= 1.2
-		tiles			[]*pixel.Sprite
-		matrices		[]pixel.Matrix
+//		tiles			[]*pixel.Sprite
+//		matrices		[]pixel.Matrix
 		frames			= 0
 		second			= time.Tick(time.Second)
 	)
-
+/*
 	tileWidth := 132.0
 	tileHeight := 66.0
 	for x := 0; x < 10; x++ {
@@ -142,7 +153,7 @@ func run() {
 			matrices = append(matrices, pixel.IM.Moved(pixel.V(xpos, ypos + whichTile.Bounds().Max.Y - whichTile.Bounds().Min.Y)))
 		}
 	}
-
+*/
 	last := time.Now()
 	for !win.Closed() {
 		dt := time.Since(last).Seconds()
@@ -151,6 +162,20 @@ func run() {
 
 		cam := pixel.IM.Scaled(camPos, camZoom).Moved(win.Bounds().Center().Sub(camPos))
 		win.SetMatrix(cam)
+
+		if win.JustPressed(pixel.MouseButtonLeft) {
+			currentTileGroup++
+			currentTile = 0
+			if currentTileGroup >= len(atlas.TileGroups) {
+				currentTileGroup = 0
+			}
+		}
+		if win.JustPressed(pixel.MouseButtonRight) {
+			currentTile++
+			if currentTile >= len(atlas.TileGroups[currentTileGroup].SubTextures) {
+				currentTile = 0
+			}
+		}
 
 /*		if win.JustPressed(pixel.MouseButtonLeft) {
 			tile := pixel.NewSprite(spritesheet, cityTiles[rand.Intn(len(cityTiles))])
@@ -178,11 +203,21 @@ func run() {
 			return;
 		}
 
+		// Get the current tile bounds and create a sprite
+		texture := atlas.TileGroups[currentTileGroup].SubTextures[currentTile]
+		tileBounds := pixel.R(
+			spritesheet.Bounds().Min.X + float64(texture.X), 
+			spritesheet.Bounds().Max.Y - float64(texture.Y) - float64(texture.Height), 
+			spritesheet.Bounds().Min.X + float64(texture.X + texture.Width), 
+			spritesheet.Bounds().Max.Y - float64(texture.Y))
+		tile := pixel.NewSprite(spritesheet, tileBounds)
+		
 		win.Clear(colornames.Grey)
 		batch.Clear()
-		for i, tile := range tiles {
-			tile.Draw(batch, matrices[i])
-		}
+
+		// for i, tile := range tiles {
+			tile.Draw(batch, pixel.IM.Moved(win.Bounds().Center()))
+		//}
 		batch.Draw(win)
 
 		frames++
