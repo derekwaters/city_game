@@ -184,7 +184,6 @@ func run() {
 			matrices = append(matrices, pixel.IM.Moved(mouse))
 		}
 */
-
 		if win.Pressed(pixel.KeyLeft) {
 			camPos.X -= camSpeed * dt
 		}
@@ -215,8 +214,10 @@ func run() {
 		win.Clear(colornames.Grey)
 		batch.Clear()
 
+		mouse := cam.Unproject(win.MousePosition())
 		// for i, tile := range tiles {
-			tile.Draw(batch, pixel.IM.Moved(win.Bounds().Center()))
+			tile.Draw(batch, pixel.IM.Moved(mouse
+				))
 		//}
 		batch.Draw(win)
 
