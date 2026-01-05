@@ -1,4 +1,4 @@
-module derekwaters/city_game
+module github.com/derekwaters/city_game
 
 go 1.25.5
 
