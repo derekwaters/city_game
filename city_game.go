@@ -127,13 +127,6 @@ func run() {
 			}
 		}
 
-/*		if win.JustPressed(pixel.MouseButtonLeft) {
-			tile := pixel.NewSprite(spritesheet, cityTiles[rand.Intn(len(cityTiles))])
-			tiles = append(tiles, tile)
-			mouse := cam.Unproject(win.MousePosition())
-			matrices = append(matrices, pixel.IM.Moved(mouse))
-		}
-*/
 		if win.Pressed(pixel.KeyLeft) {
 			camPos.X -= camSpeed * dt
 		}
@@ -165,9 +158,10 @@ func run() {
 		batch.Clear()
 
 		mouse := cam.Unproject(win.MousePosition())
-		// Need to snap mouse to the "nearest" tile pos
-		logicalX := int(math.Round((mouse.X / tileWidth) - (mouse.Y / tileHeight)))
-		logicalY := int(math.Round((mouse.X / tileWidth) + (mouse.Y / tileHeight)))
+		// Need to snap mouse to the "nearest" tile pos (note we subtract tileHeight because we're
+		// adjusting the yPos of the drawn tiles by their height later).
+		logicalX := int(math.Round((mouse.X / tileWidth) - ((mouse.Y - tileHeight) / tileHeight)))
+		logicalY := int(math.Round((mouse.X / tileWidth) + ((mouse.Y - tileHeight) / tileHeight)))
 		if logicalX < 0 {
 			logicalX = 0
 		}
@@ -183,7 +177,8 @@ func run() {
 		xpos := (float64(logicalX) * tileWidth / 2.0) +
 			(float64(logicalY) * tileWidth / 2.0)
 		ypos := (-1.0 * float64(logicalX) * tileHeight / 2.0) +
-			(float64(logicalY) * tileHeight / 2.0)
+			(float64(logicalY) * tileHeight / 2.0) +
+			tile.Frame().Max.Y - tile.Frame().Min.Y
 		mouse = pixel.V(xpos, ypos)
 
 		if win.JustPressed(pixel.MouseButtonLeft) && 
@@ -201,7 +196,9 @@ func run() {
 					xpos := (float64(x) * tileWidth / 2.0) +
 						(float64(y) * tileWidth / 2.0)
 					ypos := (-1.0 * float64(x) * tileHeight / 2.0) +
-						(float64(y) * tileHeight / 2.0)
+						(float64(y) * tileHeight / 2.0) + 
+						boardTiles[x][y].Frame().Max.Y -
+						boardTiles[x][y].Frame().Min.Y
 			
 					// Might need to also add the height of the tile here...
 					mat := pixel.IM.Moved(pixel.V(xpos, ypos))
