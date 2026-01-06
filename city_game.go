@@ -4,7 +4,7 @@ import (
 	"image"
 	"os"
 	"math"
-//	"math/rand"
+	"math/rand"
 	"time"
 	"fmt"
 
@@ -76,7 +76,7 @@ func run() {
 	batch := pixel.NewBatch(&pixel.TrianglesData{}, spritesheet)
 
 	var (
-		currentTileGroup	= 0
+		currentTileGroup	= rand.Intn(len(atlas.TileGroups))
 		currentTile 		= 0
 
 		camPos			= pixel.ZV
@@ -88,6 +88,12 @@ func run() {
 		frames			= 0
 		second			= time.Tick(time.Second)
 	)
+
+	const BOARD_SIZE = 10
+	var boardTiles [BOARD_SIZE][BOARD_SIZE]*pixel.Sprite
+	var tileWidth = 132.0
+	var tileHeight = 66.0
+
 /*
 	tileWidth := 132.0
 	tileHeight := 66.0
@@ -114,13 +120,6 @@ func run() {
 		cam := pixel.IM.Scaled(camPos, camZoom).Moved(win.Bounds().Center().Sub(camPos))
 		win.SetMatrix(cam)
 
-		if win.JustPressed(pixel.MouseButtonLeft) {
-			currentTileGroup++
-			currentTile = 0
-			if currentTileGroup >= len(atlas.TileGroups) {
-				currentTileGroup = 0
-			}
-		}
 		if win.JustPressed(pixel.MouseButtonRight) {
 			currentTile++
 			if currentTile >= len(atlas.TileGroups[currentTileGroup].SubTextures) {
@@ -166,9 +165,57 @@ func run() {
 		batch.Clear()
 
 		mouse := cam.Unproject(win.MousePosition())
-		// for i, tile := range tiles {
-			tile.Draw(batch, pixel.IM.Moved(mouse))
-		//}
+		// Need to snap mouse to the "nearest" tile pos
+		logicalX := int(math.Round((mouse.X / tileWidth) - (mouse.Y / tileHeight)))
+		logicalY := int(math.Round((mouse.X / tileWidth) + (mouse.Y / tileHeight)))
+		if logicalX < 0 {
+			logicalX = 0
+		}
+		if logicalX >= BOARD_SIZE {
+			logicalX = BOARD_SIZE - 1
+		}
+		if logicalY < 0 {
+			logicalY = 0
+		}
+		if logicalY >= BOARD_SIZE {
+			logicalY = BOARD_SIZE - 1
+		}
+		xpos := (float64(logicalX) * tileWidth / 2.0) +
+			(float64(logicalY) * tileWidth / 2.0)
+		ypos := (-1.0 * float64(logicalX) * tileHeight / 2.0) +
+			(float64(logicalY) * tileHeight / 2.0)
+		mouse = pixel.V(xpos, ypos)
+
+		if win.JustPressed(pixel.MouseButtonLeft) && 
+			boardTiles[logicalX][logicalY] == nil {
+
+			boardTiles[logicalX][logicalY] = tile
+			
+			currentTileGroup = rand.Intn(len(atlas.TileGroups))
+			currentTile = 0
+		}
+		
+		for x := 0; x < BOARD_SIZE; x++ {
+			for y := BOARD_SIZE - 1; y >= 0; y-- {
+				if boardTiles[x][y] != nil {
+					xpos := (float64(x) * tileWidth / 2.0) +
+						(float64(y) * tileWidth / 2.0)
+					ypos := (-1.0 * float64(x) * tileHeight / 2.0) +
+						(float64(y) * tileHeight / 2.0)
+			
+					// Might need to also add the height of the tile here...
+					mat := pixel.IM.Moved(pixel.V(xpos, ypos))
+
+					boardTiles[x][y].Draw(batch, mat)
+				}
+
+				if x == logicalX && y == logicalY {
+					tile.Draw(batch, pixel.IM.Moved(mouse))
+				}
+			}
+		}
+		
+		
 		batch.Draw(win)
 
 		frames++
