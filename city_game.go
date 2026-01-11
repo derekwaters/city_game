@@ -1,12 +1,11 @@
 package main
 
 import (
-	"image"
-	"os"
 	"math"
 	"math/rand"
 	"time"
 	"fmt"
+	"log/slog"
 
 	_ "image/png"
 
@@ -17,18 +16,7 @@ import (
 	"golang.org/x/image/font/basicfont"
 )
 
-func loadPicture(path string) (pixel.Picture, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	img, _, err := image.Decode(file)
-	if err != nil {
-		return nil, err
-	}
-	return pixel.PictureDataFromImage(img), nil
-}
+
 
 func run() {
 	// All game code here!
@@ -46,11 +34,14 @@ func run() {
 
 	win.SetSmooth(true)
 
+
 	basicAtlas := text.NewAtlas(basicfont.Face7x13, text.ASCII)
 	basicTxt := text.New(pixel.V(100, 400), basicAtlas)
+	mouseTxt := text.New(pixel.V(100, 450), basicAtlas)
 
 	basicTxt.Color = colornames.White
 	fmt.Fprintln(basicTxt, "Hello, city!")
+	mouseTxt.Color = colornames.White
 
 	spritesheet, err := loadPicture("resources/images/cityTiles_sheet.png")
 	if err != nil {
@@ -60,17 +51,6 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
-
-	/*
-	var cityTiles []pixel.Rect
-	for _, texture := range atlas.SubTextures {
-		cityTiles = append(cityTiles, pixel.R(
-			spritesheet.Bounds().Min.X + float64(texture.X), 
-			spritesheet.Bounds().Max.Y - float64(texture.Y) - float64(texture.Height), 
-			spritesheet.Bounds().Min.X + float64(texture.X + texture.Width), 
-			spritesheet.Bounds().Max.Y - float64(texture.Y)))
-	}
-			*/
 
 	// Create a batch for better drawing performance
 	batch := pixel.NewBatch(&pixel.TrianglesData{}, spritesheet)
@@ -87,6 +67,7 @@ func run() {
 //		matrices		[]pixel.Matrix
 		frames			= 0
 		second			= time.Tick(time.Second)
+		debugMode		= false
 	)
 
 	const BOARD_SIZE = 10
@@ -94,31 +75,22 @@ func run() {
 	var tileWidth = 132.0
 	var tileHeight = 66.0
 
-/*
-	tileWidth := 132.0
-	tileHeight := 66.0
-	for x := 0; x < 10; x++ {
-		for y := 10; y > 0; y-- {
-			xpos := (float64(x) * tileWidth / 2.0) +
-				(float64(y) * tileWidth / 2.0)
-			ypos := (-1.0 * float64(x) * tileHeight / 2.0) +
-				(float64(y) * tileHeight / 2.0)
-			
-			whichTile := cityTiles[rand.Intn(len(cityTiles))]
-			tile := pixel.NewSprite(spritesheet, whichTile)
-			tiles = append(tiles, tile)
-			matrices = append(matrices, pixel.IM.Moved(pixel.V(xpos, ypos + whichTile.Bounds().Max.Y - whichTile.Bounds().Min.Y)))
-		}
-	}
-*/
 	last := time.Now()
 	for !win.Closed() {
 		dt := time.Since(last).Seconds()
 		last = time.Now()
 
+		debugMode = false
+		if win.JustPressed(pixel.KeyD) {
+			debugMode = true
+		}
 
 		cam := pixel.IM.Scaled(camPos, camZoom).Moved(win.Bounds().Center().Sub(camPos))
 		win.SetMatrix(cam)
+
+		if debugMode {
+			slog.Info("Camera: ", "camPos", camPos, "camZoom", camZoom)
+		}
 
 		if win.JustPressed(pixel.MouseButtonRight) {
 			currentTile++
@@ -154,14 +126,24 @@ func run() {
 			spritesheet.Bounds().Max.Y - float64(texture.Y))
 		tile := pixel.NewSprite(spritesheet, tileBounds)
 		
+		if debugMode {
+			slog.Info("Current Tile: ", "currentTileGroup", currentTileGroup, 
+				"currentTile", currentTile, "tileBounds", tileBounds) 
+		}
+
 		win.Clear(colornames.Grey)
 		batch.Clear()
 
-		mouse := cam.Unproject(win.MousePosition())
+		mouseOrig := cam.Unproject(win.MousePosition())
+
+		if debugMode {
+			slog.Info("Mouse Orig Info: ", "win.MousePosition", win.MousePosition(), "mouse", mouseOrig)
+		}
+
 		// Need to snap mouse to the "nearest" tile pos (note we subtract tileHeight because we're
 		// adjusting the yPos of the drawn tiles by their height later).
-		logicalX := int(math.Round((mouse.X / tileWidth) - ((mouse.Y - tileHeight) / tileHeight)))
-		logicalY := int(math.Round((mouse.X / tileWidth) + ((mouse.Y - tileHeight) / tileHeight)))
+		logicalX := int(math.Round((mouseOrig.X / tileWidth) - ((mouseOrig.Y - tileHeight) / tileHeight)))
+		logicalY := int(math.Round((mouseOrig.X / tileWidth) + ((mouseOrig.Y - tileHeight) / tileHeight)))
 		if logicalX < 0 {
 			logicalX = 0
 		}
@@ -174,15 +156,29 @@ func run() {
 		if logicalY >= BOARD_SIZE {
 			logicalY = BOARD_SIZE - 1
 		}
+
+		if debugMode {
+			slog.Info("Logical position: ", "X", logicalX, "Y", logicalY)
+		}
+
 		xpos := (float64(logicalX) * tileWidth / 2.0) +
 			(float64(logicalY) * tileWidth / 2.0)
 		ypos := (-1.0 * float64(logicalX) * tileHeight / 2.0) +
 			(float64(logicalY) * tileHeight / 2.0) +
 			tile.Frame().Max.Y - tile.Frame().Min.Y
-		mouse = pixel.V(xpos, ypos)
+		mouse := pixel.V(xpos, ypos)
+
+
+		if debugMode {
+			slog.Info("Adjusted Tile Pos: ", "mouse", mouse)
+		}
 
 		if win.JustPressed(pixel.MouseButtonLeft) && 
 			boardTiles[logicalX][logicalY] == nil {
+
+			if debugMode {
+				slog.Info("Adding new tile: ", "win.MousePosition", win.MousePosition(), "logicalX", logicalX, "logicalY", logicalY)
+			}
 
 			boardTiles[logicalX][logicalY] = tile
 			
@@ -200,6 +196,11 @@ func run() {
 						boardTiles[x][y].Frame().Max.Y -
 						boardTiles[x][y].Frame().Min.Y
 			
+					if debugMode {
+						slog.Info("Tile: ", "X", x, "Y", y, "width", boardTiles[x][y].Frame().W(), "height", boardTiles[x][y].Frame().H())
+						slog.Info("Tile Draw Pos: ", "X", xpos, "Y", ypos)
+					}
+
 					// Might need to also add the height of the tile here...
 					mat := pixel.IM.Moved(pixel.V(xpos, ypos))
 
@@ -212,7 +213,6 @@ func run() {
 			}
 		}
 		
-		
 		batch.Draw(win)
 
 		frames++
@@ -220,11 +220,14 @@ func run() {
 		case <-second:
 			basicTxt.Clear()
 			fmt.Fprintf(basicTxt, "%d fps", frames)
-			win.SetTitle(fmt.Sprintf("%s | FPS: %d", cfg.Title, frames))
+			// win.SetTitle(fmt.Sprintf("%s | FPS: %d", cfg.Title, frames))
 			frames = 0
 		default:
 		}
 		basicTxt.Draw(win, pixel.IM)
+		mouseTxt.Clear()
+		fmt.Fprintf(mouseTxt, "Mouse: %d, %d", int(mouseOrig.X), int(mouseOrig.Y))
+		mouseTxt.Draw(win, pixel.IM)
 
 		win.Update()
 	}
