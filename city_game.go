@@ -19,7 +19,7 @@ func run() {
 	// Initiate the window
 	cfg := opengl.WindowConfig{
 		Title: "City Game!",
-		Bounds: pixel.R(0, 0, 1024, 768),
+		Bounds: pixel.R(0, 0, 1280, 768),
 		VSync: true,
 	}
 
@@ -190,6 +190,13 @@ func run() {
 		gameData.scoreText.Clear()
 		fmt.Fprintf(gameData.scoreText, "Score: %d", gameData.score)
 		gameData.scoreText.Draw(win, pixel.IM)
+
+		gameData.debugText.Clear()
+		fmt.Fprintf(gameData.debugText, "Group: %s, Offset: %d", 
+			gameData.getCurrentTileGroupName(),
+			gameData.currentTile)
+		gameData.debugText.Draw(win, pixel.IM)
+
 
 		win.Update()
 	}

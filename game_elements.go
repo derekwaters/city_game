@@ -13,7 +13,7 @@ import (
 )
 
 
-const BOARD_SIZE		= 10
+const BOARD_SIZE		= 8
 const TILE_WIDTH		= 132.0
 const TILE_HEIGHT		= 66.0
 
@@ -62,10 +62,10 @@ func(el *CityGame_Elements) _initTextElements() error {
 
 	el.textAtlas = text.NewAtlas(basicfont.Face7x13, text.ASCII)
 
-	el.fpsText = el._generateTextElement(pixel.V(100, 400))
-	el.scoreText = el._generateTextElement(pixel.V(100, 450))
-	el.debugText = el._generateTextElement(pixel.V(100, 500))
-	el.mousePosText = el._generateTextElement(pixel.V(100, 550))
+	el.fpsText = el._generateTextElement(pixel.V(0, 200))
+	el.scoreText = el._generateTextElement(pixel.V(0, 250))
+	el.debugText = el._generateTextElement(pixel.V(0, 300))
+	el.mousePosText = el._generateTextElement(pixel.V(0, 350))
 
 	return nil
 }
@@ -133,13 +133,18 @@ func(el *CityGame_Elements) getCurrentTile() *pixel.Sprite {
 	return tile
 }
 
+func(el *CityGame_Elements) getCurrentTileGroupName() string {
+	
+	return el.textureAtlas.TileGroups[el.currentTileGroup].Name
+}
+
 
 
 func InitGameElements() (*CityGame_Elements, error) {
 	e := &CityGame_Elements{
 		currentTileGroup: 	0,
 		currentTile: 		0,
-		camPos: 			pixel.ZV,
+		camPos: 			pixel.V(480.0, 120.0),
 		camSpeed: 			500.0,
 		camZoom:			1.0,
 		camZoomSpeed:		1.2,
