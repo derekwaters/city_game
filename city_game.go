@@ -84,7 +84,7 @@ func run() {
 
 		if gameData.debugMode {
 			slog.Info("Current Tile: ", "currentTileGroup", gameData.currentTileGroup, 
-				"currentTile", gameData.currentTile, "tileBounds", tile.Frame()) 
+				"currentTile", gameData.currentTile, "tileBounds", tile.sprite.Frame()) 
 		}
 
 		win.Clear(colornames.Grey)
@@ -117,7 +117,7 @@ func run() {
 			(float64(logicalY) * TILE_WIDTH / 2.0)
 		ypos := (-1.0 * float64(logicalX) * TILE_HEIGHT / 2.0) +
 			(float64(logicalY) * TILE_HEIGHT / 2.0) +
-			tile.Frame().Max.Y - tile.Frame().Min.Y
+			tile.sprite.Frame().Max.Y - tile.sprite.Frame().Min.Y
 		mouse := pixel.V(xpos, ypos)
 
 
@@ -125,16 +125,11 @@ func run() {
 			slog.Info("Adjusted Tile Pos: ", "mouse", mouse)
 		}
 
-		if win.JustPressed(pixel.MouseButtonLeft) && 
-			gameData.boardTiles[logicalX][logicalY] == nil {
-
+		if win.JustPressed(pixel.MouseButtonLeft) {
+			gameData.checkAddCurrentTile(logicalX, logicalY, tile)
 			if gameData.debugMode {
-				slog.Info("Adding new tile: ", "win.MousePosition", win.MousePosition(), "logicalX", logicalX, "logicalY", logicalY)
+				slog.Info("Possibly add new tile: ", "win.MousePosition", win.MousePosition(), "logicalX", logicalX, "logicalY", logicalY)
 			}
-
-			gameData.boardTiles[logicalX][logicalY] = tile
-			
-			gameData.getNextTileGroup()
 		}
 		
 		for x := 0; x < BOARD_SIZE; x++ {
@@ -142,27 +137,27 @@ func run() {
 
 				boardTile := gameData.boardTiles[x][y]
 
-				if boardTile != nil {
+				if boardTile.sprite != nil {
 					xpos := (float64(x) * TILE_WIDTH / 2.0) +
 						(float64(y) * TILE_WIDTH / 2.0)
 					ypos := (-1.0 * float64(x) * TILE_HEIGHT / 2.0) +
 						(float64(y) * TILE_HEIGHT / 2.0) + 
-						boardTile.Frame().Max.Y -
-						boardTile.Frame().Min.Y
+						boardTile.sprite.Frame().Max.Y -
+						boardTile.sprite.Frame().Min.Y
 			
 					if gameData.debugMode {
-						slog.Info("Tile: ", "X", x, "Y", y, "width", boardTile.Frame().W(), "height", boardTile.Frame().H())
+						slog.Info("Tile: ", "X", x, "Y", y, "width", boardTile.sprite.Frame().W(), "height", boardTile.sprite.Frame().H())
 						slog.Info("Tile Draw Pos: ", "X", xpos, "Y", ypos)
 					}
 
 					// Might need to also add the height of the tile here...
 					mat := pixel.IM.Moved(pixel.V(xpos, ypos))
 
-					boardTile.Draw(gameData.tileBatch, mat)
+					boardTile.sprite.Draw(gameData.tileBatch, mat)
 				}
 
 				if x == logicalX && y == logicalY {
-					tile.Draw(gameData.tileBatch, pixel.IM.Moved(mouse))
+					tile.sprite.Draw(gameData.tileBatch, pixel.IM.Moved(mouse))
 				}
 			}
 		}

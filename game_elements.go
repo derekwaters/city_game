@@ -17,6 +17,10 @@ const BOARD_SIZE		= 8
 const TILE_WIDTH		= 132.0
 const TILE_HEIGHT		= 66.0
 
+type CityGame_Tile struct {
+	sprite	*pixel.Sprite
+	details	*SpriteSheet_SubTexture
+}
 
 type CityGame_Elements struct {
 	win							opengl.Window
@@ -34,7 +38,7 @@ type CityGame_Elements struct {
 	tileBatch					*pixel.Batch
 	
 	// Current Tile Data
-	boardTiles					[BOARD_SIZE][BOARD_SIZE]*pixel.Sprite
+	boardTiles					[BOARD_SIZE][BOARD_SIZE]CityGame_Tile
 	currentTileGroup			int
 	currentTile					int
 
@@ -107,27 +111,7 @@ func(el *CityGame_Elements) getNextTileGroup() {
 	el.currentTile = 0
 }
 
-func(el *CityGame_Elements) scrollLeft(dt float64) {
-	el.camPos.X -= el.camSpeed * dt
-}
-
-func(el *CityGame_Elements) scrollRight(dt float64) {
-	el.camPos.X += el.camSpeed * dt
-}
-
-func(el *CityGame_Elements) scrollUp(dt float64) {
-	el.camPos.Y += el.camSpeed * dt
-}
-
-func(el *CityGame_Elements) scrollDown(dt float64) {
-	el.camPos.Y -= el.camSpeed * dt
-}
-
-func(el *CityGame_Elements) zoom(zoomLevel float64) {
-	el.camZoom *= math.Pow(el.camZoomSpeed, zoomLevel)
-}
-
-func(el *CityGame_Elements) getCurrentTile() *pixel.Sprite {
+func(el *CityGame_Elements) getCurrentTile() *CityGame_Tile {
 	// Get the current tile bounds and create a sprite
 	texture := el.textureAtlas.TileGroups[el.currentTileGroup].SubTextures[el.currentTile]
 	tileBounds := pixel.R(
@@ -135,7 +119,12 @@ func(el *CityGame_Elements) getCurrentTile() *pixel.Sprite {
 		(*el.spritesheet).Bounds().Max.Y - float64(texture.Y) - float64(texture.Height), 
 		(*el.spritesheet).Bounds().Min.X + float64(texture.X + texture.Width), 
 		(*el.spritesheet).Bounds().Max.Y - float64(texture.Y))
-	tile := pixel.NewSprite(*el.spritesheet, tileBounds)
+	tileSprite := pixel.NewSprite(*el.spritesheet, tileBounds)
+	tile := &CityGame_Tile{
+		sprite:			tileSprite,
+		details:		&el.textureAtlas.TileGroups[el.currentTileGroup].SubTextures[el.currentTile],
+	}
+
 	return tile
 }
 
@@ -157,6 +146,37 @@ func(el *CityGame_Elements) getCurrentTileJoinBR() JoinType {
 
 func(el *CityGame_Elements) getCurrentTileJoinBL() JoinType {
 	return el.textureAtlas.TileGroups[el.currentTileGroup].SubTextures[el.currentTile].JoinBL
+}
+
+func (el *CityGame_Elements) checkAddCurrentTile (x int, y int, tile *CityGame_Tile) {
+
+	if el.boardTiles[x][y].sprite == nil {
+		el.boardTiles[x][y] = *tile
+
+		// Score Checks!
+
+		el.getNextTileGroup()
+	}
+}
+
+func(el *CityGame_Elements) scrollLeft(dt float64) {
+	el.camPos.X -= el.camSpeed * dt
+}
+
+func(el *CityGame_Elements) scrollRight(dt float64) {
+	el.camPos.X += el.camSpeed * dt
+}
+
+func(el *CityGame_Elements) scrollUp(dt float64) {
+	el.camPos.Y += el.camSpeed * dt
+}
+
+func(el *CityGame_Elements) scrollDown(dt float64) {
+	el.camPos.Y -= el.camSpeed * dt
+}
+
+func(el *CityGame_Elements) zoom(zoomLevel float64) {
+	el.camZoom *= math.Pow(el.camZoomSpeed, zoomLevel)
 }
 
 
