@@ -154,7 +154,25 @@ func (el *CityGame_Elements) checkAddCurrentTile (x int, y int, tile *CityGame_T
 		el.boardTiles[x][y] = *tile
 
 		// Score Checks!
+		thisTile := &el.textureAtlas.TileGroups[el.currentTileGroup].SubTextures[el.currentTile]
 
+		if x > 0 && el.boardTiles[x - 1][y].sprite != nil && 
+			thisTile.JoinTL.compatibleWith(el.boardTiles[x - 1][y].details.JoinBR) {
+			el.score++
+		}
+		if x < (BOARD_SIZE - 1) && el.boardTiles[x + 1][y].sprite != nil && 
+			thisTile.JoinBR.compatibleWith(el.boardTiles[x + 1][y].details.JoinTL) {
+			el.score++
+		}
+		if y > 0 && el.boardTiles[x][y - 1].sprite != nil && 
+			thisTile.JoinBL.compatibleWith(el.boardTiles[x][y - 1].details.JoinTR) {
+			el.score++
+		}
+		if y < (BOARD_SIZE - 1) && el.boardTiles[x][y + 1].sprite != nil && 
+			thisTile.JoinTR.compatibleWith(el.boardTiles[x][y + 1].details.JoinBL) {
+			el.score++
+		}
+	
 		el.getNextTileGroup()
 	}
 }

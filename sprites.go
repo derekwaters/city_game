@@ -49,6 +49,18 @@ func (jt JoinType) String() string {
 	return joinTypeName[jt]
 }
 
+func (jt JoinType) compatibleWith(comp JoinType) bool {
+	// Concrete gets nothing
+	if jt == JoinType_Concrete {
+		return false
+	} else if (jt == JoinType_RoadFootpathLeft && comp == JoinType_RoadFootpathRight) ||
+			(jt == JoinType_RoadFootpathRight && comp == JoinType_RoadFootpathLeft) {
+		// Footpath bits go opposite I guess?
+		return true
+	}
+	return jt == comp
+}
+
 /*******
  * ImageMap Definitions
  ********/
