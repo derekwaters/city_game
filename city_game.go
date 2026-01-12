@@ -114,16 +114,12 @@ func run() {
 			slog.Info("Logical position: ", "X", logicalX, "Y", logicalY)
 		}
 
-		xpos := (float64(logicalX) * TILE_WIDTH / 2.0) +
-			(float64(logicalY) * TILE_WIDTH / 2.0)
-		ypos := (-1.0 * float64(logicalX) * TILE_HEIGHT / 2.0) +
-			(float64(logicalY) * TILE_HEIGHT / 2.0) +
-			tile.sprite.Frame().Max.Y - tile.sprite.Frame().Min.Y
-		mouse := pixel.V(xpos, ypos)
-
+		mousePos := gameData.mapTilePos(logicalX, logicalY)
+		mousePos.Y += 
+			(tile.sprite.Frame().Max.Y - tile.sprite.Frame().Min.Y) / 2.0
 
 		if gameData.debugMode {
-			slog.Info("Adjusted Tile Pos: ", "mouse", mouse)
+			slog.Info("Adjusted Tile Pos: ", "mouse", mousePos)
 		}
 
 		if win.JustPressed(pixel.MouseButtonLeft) {
@@ -141,8 +137,8 @@ func run() {
 				if boardTile.sprite != nil {
 					mappedPos := gameData.mapTilePos(x, y)
 					mappedPos.Y += 
-						boardTile.sprite.Frame().Max.Y -
-						boardTile.sprite.Frame().Min.Y
+						(boardTile.sprite.Frame().Max.Y -
+						boardTile.sprite.Frame().Min.Y) / 2.0
 			
 					if gameData.debugMode {
 						slog.Info("Tile: ", "X", x, "Y", y, "width", boardTile.sprite.Frame().W(), "height", boardTile.sprite.Frame().H())
@@ -156,7 +152,7 @@ func run() {
 				}
 
 				if x == logicalX && y == logicalY {
-					tile.sprite.Draw(gameData.tileBatch, pixel.IM.Moved(mouse))
+					tile.sprite.Draw(gameData.tileBatch, pixel.IM.Moved(mousePos))
 				}
 			}
 		}

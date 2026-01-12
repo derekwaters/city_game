@@ -101,16 +101,16 @@ func(el *CityGame_Elements) _initDrawingElements() {
 
 	el.imdraw.Color = pixel.RGB(0.0, 0.0, 0.2)
 	for x := 0; x <= BOARD_SIZE; x++ {
-		p1 := el.mapTilePos(x, 0).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT))
-		p2 := el.mapTilePos(x, BOARD_SIZE).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT))
+		p1 := el.mapTilePos(x, 0).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT / 2.0))
+		p2 := el.mapTilePos(x, BOARD_SIZE).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT / 2.0))
 		el.imdraw.Push(p1)
 		el.imdraw.Push(p2)
 		el.imdraw.Line(3)
 	} 
 
 	for y := 0; y <= BOARD_SIZE; y++ {
-		p1 := el.mapTilePos(0, y).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT))
-		p2 := el.mapTilePos(BOARD_SIZE, y).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT))
+		p1 := el.mapTilePos(0, y).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT / 2.0))
+		p2 := el.mapTilePos(BOARD_SIZE, y).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT / 2.0))
 		el.imdraw.Push(p1)
 		el.imdraw.Push(p2)
 		el.imdraw.Line(3)
