@@ -7,6 +7,49 @@ import (
 )
 
 /*******
+ * JoinType Definitions
+ ********/
+type JoinType int
+
+const (
+	JoinType_Concrete 			= 0
+	JoinType_Road				= 1
+	JoinType_RoadFootpathRight	= 2
+	JoinType_RoadFootpathLeft	= 3
+	JoinType_RoadFullWidth		= 4
+	JoinType_Canal				= 5
+	JoinType_BikePath			= 6
+	JoinType_NatureStrip		= 7
+	JoinType_TunnelHeight		= 8
+	JoinType_TunnelDepth		= 9
+	JoinType_RedWallFull		= 10
+	JoinType_RedWallGap			= 11
+	JoinType_RoadHeight			= 12
+	JoinType_River				= 13
+)
+
+var joinTypeName = map[JoinType]string {
+	JoinType_Concrete 			: "Concrete",
+	JoinType_Road				: "Road",
+	JoinType_RoadFootpathRight	: "Road With Footpath On Right",
+	JoinType_RoadFootpathLeft	: "Road With Footpath On Left",
+	JoinType_RoadFullWidth		: "Full Width Road",
+	JoinType_Canal				: "Canal",
+	JoinType_BikePath			: "Bike Path",
+	JoinType_NatureStrip		: "Nature Strip",
+	JoinType_TunnelHeight		: "Tunnel Height",
+	JoinType_TunnelDepth		: "Tunnel Depth",
+	JoinType_RedWallFull		: "Red Wall",
+	JoinType_RedWallGap			: "Red Wall With Gap",
+	JoinType_RoadHeight			: "Road Height",
+	JoinType_River				: "River",
+}
+
+func (jt JoinType) String() string {
+	return joinTypeName[jt]
+}
+
+/*******
  * ImageMap Definitions
  ********/
 type SpriteSheet_SubTexture struct {
@@ -16,6 +59,10 @@ type SpriteSheet_SubTexture struct {
 	Y		int			`xml:"y,attr"`
 	Width	int			`xml:"width,attr"`
 	Height	int			`xml:"height,attr"`
+	JoinTL  JoinType	`xml:"joinTL,attr"`
+	JoinTR  JoinType	`xml:"joinTR,attr"`
+	JoinBR  JoinType	`xml:"joinBR,attr"`
+	JoinBL  JoinType	`xml:"joinBL,attr"`
 } 
 
 type SpriteSheet_TileGroup struct {

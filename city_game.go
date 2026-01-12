@@ -192,9 +192,13 @@ func run() {
 		gameData.scoreText.Draw(win, pixel.IM)
 
 		gameData.debugText.Clear()
-		fmt.Fprintf(gameData.debugText, "Group: %s, Offset: %d", 
+		fmt.Fprintf(gameData.debugText, "Group: %s, Offset: %d, TL: %s, TR: %s, BR: %s, BL: %s", 
 			gameData.getCurrentTileGroupName(),
-			gameData.currentTile)
+			gameData.currentTile,
+			gameData.getCurrentTileJoinTL(),
+			gameData.getCurrentTileJoinTR(),
+			gameData.getCurrentTileJoinBR(),
+			gameData.getCurrentTileJoinBL())
 		gameData.debugText.Draw(win, pixel.IM)
 
 

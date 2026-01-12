@@ -2,7 +2,7 @@ package main
 
 import (
 	"time"
-	"math/rand"
+//	"math/rand"
 	"math"
 
 	"github.com/gopxl/pixel/v2"
@@ -96,7 +96,14 @@ func(el *CityGame_Elements) cycleNextTile() {
 }
 
 func(el *CityGame_Elements) getNextTileGroup() {
-	el.currentTileGroup = rand.Intn(len(el.textureAtlas.TileGroups))
+	// Actual Game
+	// el.currentTileGroup = rand.Intn(len(el.textureAtlas.TileGroups))
+	// Debugging
+	el.currentTileGroup++
+	if el.currentTileGroup >= len(el.textureAtlas.TileGroups) {
+		el.currentTileGroup = 0
+	}
+
 	el.currentTile = 0
 }
 
@@ -121,7 +128,6 @@ func(el *CityGame_Elements) zoom(zoomLevel float64) {
 }
 
 func(el *CityGame_Elements) getCurrentTile() *pixel.Sprite {
-	
 	// Get the current tile bounds and create a sprite
 	texture := el.textureAtlas.TileGroups[el.currentTileGroup].SubTextures[el.currentTile]
 	tileBounds := pixel.R(
@@ -134,8 +140,23 @@ func(el *CityGame_Elements) getCurrentTile() *pixel.Sprite {
 }
 
 func(el *CityGame_Elements) getCurrentTileGroupName() string {
-	
 	return el.textureAtlas.TileGroups[el.currentTileGroup].Name
+}
+
+func(el *CityGame_Elements) getCurrentTileJoinTL() JoinType {
+	return el.textureAtlas.TileGroups[el.currentTileGroup].SubTextures[el.currentTile].JoinTL
+}
+
+func(el *CityGame_Elements) getCurrentTileJoinTR() JoinType {
+	return el.textureAtlas.TileGroups[el.currentTileGroup].SubTextures[el.currentTile].JoinTR
+}
+
+func(el *CityGame_Elements) getCurrentTileJoinBR() JoinType {
+	return el.textureAtlas.TileGroups[el.currentTileGroup].SubTextures[el.currentTile].JoinBR
+}
+
+func(el *CityGame_Elements) getCurrentTileJoinBL() JoinType {
+	return el.textureAtlas.TileGroups[el.currentTileGroup].SubTextures[el.currentTile].JoinBL
 }
 
 
