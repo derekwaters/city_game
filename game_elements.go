@@ -11,7 +11,6 @@ import (
 	"github.com/gopxl/pixel/v2/ext/text"
 	"github.com/gopxl/pixel/v2/ext/imdraw"
 	"golang.org/x/image/colornames"
-	"golang.org/x/image/font/basicfont"
 )
 
 
@@ -69,12 +68,17 @@ func(el *CityGame_Elements) _generateTextElement(pos pixel.Vec) *text.Text {
 
 func(el *CityGame_Elements) _initTextElements() error {
 
-	el.textAtlas = text.NewAtlas(basicfont.Face7x13, text.ASCII)
+	face, err := loadTTF("resources/fonts/Chibi.ttf", 30)
+	if err != nil {
+		panic(err)
+	}
 
-	el.fpsText = el._generateTextElement(pixel.V(0, 200))
-	el.scoreText = el._generateTextElement(pixel.V(0, 250))
-	el.debugText = el._generateTextElement(pixel.V(0, 300))
-	el.mousePosText = el._generateTextElement(pixel.V(0, 350))
+	el.textAtlas = text.NewAtlas(face, text.ASCII)
+
+	el.fpsText = el._generateTextElement(pixel.V(-60, 250))
+	el.scoreText = el._generateTextElement(pixel.V(-60, 300))
+	el.debugText = el._generateTextElement(pixel.V(-60, 350))
+	el.mousePosText = el._generateTextElement(pixel.V(-60, 400))
 
 	return nil
 }
@@ -99,7 +103,7 @@ func(el *CityGame_Elements) _initTileElements() error {
 func(el *CityGame_Elements) _initDrawingElements() {
 	el.imdraw = imdraw.New(nil)
 
-	el.imdraw.Color = pixel.RGB(0.0, 0.0, 0.2)
+	el.imdraw.Color = pixel.RGB(0.0, 0.2, 0.0)
 	for x := 0; x <= BOARD_SIZE; x++ {
 		p1 := el.mapTilePos(x, 0).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT / 2.0))
 		p2 := el.mapTilePos(x, BOARD_SIZE).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT / 2.0))
@@ -271,5 +275,7 @@ func InitGameElements() (*CityGame_Elements, error) {
 
 	e._initDrawingElements()
 
+	e.getNextTileGroup()
+	
 	return e, nil
 }

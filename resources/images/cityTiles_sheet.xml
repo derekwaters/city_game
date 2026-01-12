@@ -1,9 +1,9 @@
 <TextureAtlas>
     <TileGroup name="straight_road_with_cutout">
         <SubTexture name="cityTiles_070.png" x="0" y="0" width="133" height="101" joinTL="1" joinTR="0" joinBL="0" joinBR="1"></SubTexture>
-        <SubTexture name="cityTiles_078.png" x="0" y="1338" width="133" height="101" joinTL="0" joinTR="1" joinBL="1" joinBR="0"></SubTexture>
-        <SubTexture name="cityTiles_071.png" x="0" y="468" width="133" height="101" joinTL="1" joinTR="0" joinBL="0" joinBR="1"></SubTexture>
         <SubTexture name="cityTiles_063.png" x="133" y="1107" width="133" height="101" joinTL="0" joinTR="1" joinBL="1" joinBR="0"></SubTexture>
+        <SubTexture name="cityTiles_071.png" x="0" y="468" width="133" height="101" joinTL="1" joinTR="0" joinBL="0" joinBR="1"></SubTexture>
+        <SubTexture name="cityTiles_078.png" x="0" y="1338" width="133" height="101" joinTL="0" joinTR="1" joinBL="1" joinBR="0"></SubTexture>
     </TileGroup>
     <TileGroup name="sloped_tunnel_entrance">
         <SubTexture name="cityTiles_013.png" x="0" y="101" width="133" height="133" joinTL="0" joinTR="8" joinBL="1" joinBR="0"></SubTexture>
