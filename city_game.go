@@ -88,6 +88,7 @@ func run() {
 		}
 
 		win.Clear(colornames.Grey)
+		gameData.imdraw.Draw(win)
 		gameData.tileBatch.Clear()
 
 		// Need to snap mouse to the "nearest" tile pos (note we subtract TILE_HEIGHT because we're
@@ -138,20 +139,18 @@ func run() {
 				boardTile := gameData.boardTiles[x][y]
 
 				if boardTile.sprite != nil {
-					xpos := (float64(x) * TILE_WIDTH / 2.0) +
-						(float64(y) * TILE_WIDTH / 2.0)
-					ypos := (-1.0 * float64(x) * TILE_HEIGHT / 2.0) +
-						(float64(y) * TILE_HEIGHT / 2.0) + 
+					mappedPos := gameData.mapTilePos(x, y)
+					mappedPos.Y += 
 						boardTile.sprite.Frame().Max.Y -
 						boardTile.sprite.Frame().Min.Y
 			
 					if gameData.debugMode {
 						slog.Info("Tile: ", "X", x, "Y", y, "width", boardTile.sprite.Frame().W(), "height", boardTile.sprite.Frame().H())
-						slog.Info("Tile Draw Pos: ", "X", xpos, "Y", ypos)
+						slog.Info("Tile Draw Pos: ", "X", mappedPos.X, "Y", mappedPos.Y)
 					}
 
 					// Might need to also add the height of the tile here...
-					mat := pixel.IM.Moved(pixel.V(xpos, ypos))
+					mat := pixel.IM.Moved(mappedPos)
 
 					boardTile.sprite.Draw(gameData.tileBatch, mat)
 				}

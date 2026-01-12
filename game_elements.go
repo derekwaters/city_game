@@ -2,12 +2,14 @@ package main
 
 import (
 	"time"
-//	"math/rand"
+	"math/rand"
 	"math"
+	"fmt"
 
 	"github.com/gopxl/pixel/v2"
 	"github.com/gopxl/pixel/v2/backends/opengl"
 	"github.com/gopxl/pixel/v2/ext/text"
+	"github.com/gopxl/pixel/v2/ext/imdraw"
 	"golang.org/x/image/colornames"
 	"golang.org/x/image/font/basicfont"
 )
@@ -25,6 +27,9 @@ type CityGame_Tile struct {
 type CityGame_Elements struct {
 	win							opengl.Window
 	textAtlas					*text.Atlas
+
+	// Polygon Drawing
+	imdraw						*imdraw.IMDraw
 
 	// Text Labels
 	fpsText						*text.Text
@@ -91,6 +96,32 @@ func(el *CityGame_Elements) _initTileElements() error {
 	return nil
 }
 
+func(el *CityGame_Elements) _initDrawingElements() {
+	el.imdraw = imdraw.New(nil)
+
+	el.imdraw.Color = pixel.RGB(0.0, 0.0, 0.2)
+	for x := 0; x <= BOARD_SIZE; x++ {
+		p1 := el.mapTilePos(x, 0).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT))
+		p2 := el.mapTilePos(x, BOARD_SIZE).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT))
+		el.imdraw.Push(p1)
+		el.imdraw.Push(p2)
+		el.imdraw.Line(3)
+	} 
+
+	for y := 0; y <= BOARD_SIZE; y++ {
+		p1 := el.mapTilePos(0, y).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT))
+		p2 := el.mapTilePos(BOARD_SIZE, y).Sub(pixel.V(TILE_WIDTH / 2.0, -TILE_HEIGHT))
+		el.imdraw.Push(p1)
+		el.imdraw.Push(p2)
+		el.imdraw.Line(3)
+	} 
+}
+
+func(el *CityGame_Elements) mapTilePos(x int, y int) pixel.Vec {
+	return pixel.V(
+		(float64(x) * TILE_WIDTH / 2.0) + (float64(y) * TILE_WIDTH / 2.0),
+		(-1.0 * float64(x) * TILE_HEIGHT / 2.0) + (float64(y) * TILE_HEIGHT / 2.0))
+}
 
 func(el *CityGame_Elements) cycleNextTile() {
 	el.currentTile++
@@ -101,12 +132,12 @@ func(el *CityGame_Elements) cycleNextTile() {
 
 func(el *CityGame_Elements) getNextTileGroup() {
 	// Actual Game
-	// el.currentTileGroup = rand.Intn(len(el.textureAtlas.TileGroups))
+	el.currentTileGroup = rand.Intn(len(el.textureAtlas.TileGroups))
 	// Debugging
-	el.currentTileGroup++
-	if el.currentTileGroup >= len(el.textureAtlas.TileGroups) {
-		el.currentTileGroup = 0
-	}
+	// el.currentTileGroup++
+	// if el.currentTileGroup >= len(el.textureAtlas.TileGroups) {
+	// 	el.currentTileGroup = 0
+	// }
 
 	el.currentTile = 0
 }
@@ -148,6 +179,18 @@ func(el *CityGame_Elements) getCurrentTileJoinBL() JoinType {
 	return el.textureAtlas.TileGroups[el.currentTileGroup].SubTextures[el.currentTile].JoinBL
 }
 
+func(el *CityGame_Elements) getTotalTileCount() int {
+	ret := 0
+	for x := 0; x < BOARD_SIZE; x++ {
+		for y := 0; y < BOARD_SIZE; y++ {
+			if el.boardTiles[x][y].sprite != nil {
+				ret++
+			}
+		}
+	}
+	return ret
+}
+
 func (el *CityGame_Elements) checkAddCurrentTile (x int, y int, tile *CityGame_Tile) {
 
 	if el.boardTiles[x][y].sprite == nil {
@@ -173,6 +216,10 @@ func (el *CityGame_Elements) checkAddCurrentTile (x int, y int, tile *CityGame_T
 			el.score++
 		}
 	
+		if el.getTotalTileCount() == (BOARD_SIZE * BOARD_SIZE) {
+			panic(fmt.Sprintf("GAME OVER: Score = %d", el.score))
+		}
+
 		el.getNextTileGroup()
 	}
 }
@@ -196,8 +243,6 @@ func(el *CityGame_Elements) scrollDown(dt float64) {
 func(el *CityGame_Elements) zoom(zoomLevel float64) {
 	el.camZoom *= math.Pow(el.camZoomSpeed, zoomLevel)
 }
-
-
 
 func InitGameElements() (*CityGame_Elements, error) {
 	e := &CityGame_Elements{
@@ -223,6 +268,8 @@ func InitGameElements() (*CityGame_Elements, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	e._initDrawingElements()
 
 	return e, nil
 }
