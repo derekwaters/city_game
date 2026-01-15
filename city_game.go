@@ -46,33 +46,38 @@ func run() {
 		dt := time.Since(last).Seconds()
 		last = time.Now()
 
+		cam := pixel.IM.Scaled(gameData.camPos, gameData.camZoom).Moved(win.Bounds().Center().Sub(gameData.camPos))
+		win.SetMatrix(cam)
+
 		switch gameData.state {
 		case GameState_Title:
 			win.Clear(colornames.Darkgreen)
 			
 			gameData.scoreText.Clear()
+			totalText := ""
 			for menuVal, menuLabel := range MenuSelectionName {
-				itemText := menuLabel
 				if menuVal == gameData.menuSelection {
-					itemText = "> " + itemText
+					totalText += "> "
 				}
-				fmt.Fprintf(gameData.scoreText, "%s\n", itemText)
-				gameData.scoreText.Draw(win, pixel.IM.Moved(pixel.V(400.0, 0.0)))
+				totalText += menuLabel + "\n"
 			}
+			fmt.Fprintf(gameData.scoreText, "%s", totalText)
+			
+			gameData.scoreText.Draw(win, pixel.IM.Moved(pixel.V(800.0, 0.0)))
 
-			if win.Pressed(pixel.KeyUp) {
+			if win.JustPressed(pixel.KeyUp) {
 				gameData.menuSelection--
 				if gameData.menuSelection < MenuSelection_NewGame {
 					gameData.menuSelection = MenuSelection_NewGame
 				}
 			}
-			if win.Pressed(pixel.KeyDown) {
+			if win.JustPressed(pixel.KeyDown) {
 				gameData.menuSelection++
 				if gameData.menuSelection > MenuSelection_Quit {
 					gameData.menuSelection = MenuSelection_Quit
 				}
 			}
-			if win.Pressed(pixel.KeyEnter) {
+			if win.JustPressed(pixel.KeyEnter) {
 				switch gameData.menuSelection {
 				case MenuSelection_NewGame:
 					gameData.resetGame()
@@ -85,6 +90,9 @@ func run() {
 					return;
 				}
 			}
+			if win.JustPressed(pixel.KeyEscape) {
+				return;
+			}
 
 		case GameState_Running:
 
@@ -92,9 +100,6 @@ func run() {
 			if win.JustPressed(pixel.KeyD) {
 				gameData.debugMode = true
 			}
-
-			cam := pixel.IM.Scaled(gameData.camPos, gameData.camZoom).Moved(win.Bounds().Center().Sub(gameData.camPos))
-			win.SetMatrix(cam)
 
 			if gameData.debugMode {
 				slog.Info("Camera: ", "camPos", gameData.camPos, "camZoom", gameData.camZoom)
