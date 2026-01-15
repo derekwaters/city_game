@@ -18,13 +18,31 @@ const BOARD_SIZE		= 8
 const TILE_WIDTH		= 132.0
 const TILE_HEIGHT		= 66.0
 
-type GameState int
+type GameState 		int
+type MenuSelection 	int
 
 const (
 	GameState_Title = iota
+	GameState_Settings
+	GameState_About
+	GameState_ReallyQuit
 	GameState_Running
 	GameState_GameOver
 )
+
+const (
+	MenuSelection_NewGame = iota
+	MenuSelection_Settings
+	MenuSelection_About
+	MenuSelection_Quit
+)
+
+var MenuSelectionName = map[MenuSelection]string{
+	MenuSelection_NewGame:	"New Game",
+	MenuSelection_Settings:	"Settings",
+	MenuSelection_About:	"About",
+	MenuSelection_Quit:		"Quit",
+}
 
 type CityGame_Tile struct {
 	sprite	*pixel.Sprite
@@ -67,6 +85,8 @@ type CityGame_Elements struct {
 	
 	// Game State
 	score						int
+	state						GameState			
+	menuSelection				MenuSelection
 } 
 
 func(el *CityGame_Elements) _generateTextElement(pos pixel.Vec, face *text.Atlas) *text.Text {
@@ -265,8 +285,21 @@ func(el *CityGame_Elements) zoom(zoomLevel float64) {
 	el.camZoom *= math.Pow(el.camZoomSpeed, zoomLevel)
 }
 
+func(el *CityGame_Elements) resetGame() {
+	el.score = 0
+	for x := 0; x < BOARD_SIZE; x++ {
+		for y := 0; y < BOARD_SIZE; y++ {
+			el.boardTiles[x][y].details = nil
+			el.boardTiles[x][y].sprite = nil
+		}
+	}
+	el.getNextTileGroup()
+}
+
 func InitGameElements() (*CityGame_Elements, error) {
 	e := &CityGame_Elements{
+		state:				GameState_Title,
+		menuSelection:		MenuSelection_NewGame,
 		currentTileGroup: 	0,
 		currentTile: 		0,
 		camPos: 			pixel.V(480.0, 120.0),
