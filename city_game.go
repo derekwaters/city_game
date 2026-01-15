@@ -46,6 +46,10 @@ func run() {
 		dt := time.Since(last).Seconds()
 		last = time.Now()
 
+
+
+
+
 		gameData.debugMode = false
 		if win.JustPressed(pixel.KeyD) {
 			gameData.debugMode = true
@@ -116,7 +120,8 @@ func run() {
 
 		mousePos := gameData.mapTilePos(logicalX, logicalY)
 		mousePos.Y += 
-			(tile.sprite.Frame().Max.Y - tile.sprite.Frame().Min.Y) / 2.0
+			((tile.sprite.Frame().Max.Y - tile.sprite.Frame().Min.Y) / 2.0) + 8.0
+			// A little extra to make the "moving" tile float a bit.
 
 		if gameData.debugMode {
 			slog.Info("Adjusted Tile Pos: ", "mouse", mousePos)
@@ -168,14 +173,14 @@ func run() {
 			gameData.frames = 0
 		default:
 		}
+		gameData.scoreText.Clear()
+		fmt.Fprintf(gameData.scoreText, "Score: %d", gameData.score)
+		gameData.scoreText.Draw(win, pixel.IM)
+
 		gameData.fpsText.Draw(win, pixel.IM)
 		gameData.mousePosText.Clear()
 		fmt.Fprintf(gameData.mousePosText, "Mouse: %d, %d", int(mouseOrig.X), int(mouseOrig.Y))
 		gameData.mousePosText.Draw(win, pixel.IM)
-
-		gameData.scoreText.Clear()
-		fmt.Fprintf(gameData.scoreText, "Score: %d", gameData.score)
-		gameData.scoreText.Draw(win, pixel.IM)
 
 		gameData.scoreText.Clear()
 		fmt.Fprintf(gameData.scoreText, "Score: %d", gameData.score)

@@ -18,6 +18,14 @@ const BOARD_SIZE		= 8
 const TILE_WIDTH		= 132.0
 const TILE_HEIGHT		= 66.0
 
+type GameState int
+
+const (
+	GameState_Title = iota
+	GameState_Running
+	GameState_GameOver
+)
+
 type CityGame_Tile struct {
 	sprite	*pixel.Sprite
 	details	*SpriteSheet_SubTexture
@@ -26,6 +34,7 @@ type CityGame_Tile struct {
 type CityGame_Elements struct {
 	win							opengl.Window
 	textAtlas					*text.Atlas
+	debugAtlas					*text.Atlas
 
 	// Polygon Drawing
 	imdraw						*imdraw.IMDraw
@@ -60,25 +69,33 @@ type CityGame_Elements struct {
 	score						int
 } 
 
-func(el *CityGame_Elements) _generateTextElement(pos pixel.Vec) *text.Text {
-	item := text.New(pos, el.textAtlas)
+func(el *CityGame_Elements) _generateTextElement(pos pixel.Vec, face *text.Atlas) *text.Text {
+	item := text.New(pos, face)
 	item.Color = colornames.White
 	return item
 }
 
 func(el *CityGame_Elements) _initTextElements() error {
 
-	face, err := loadTTF("resources/fonts/Chibi.ttf", 30)
+	face, err := loadTTF("resources/fonts/Chibi.ttf", 40)
 	if err != nil {
 		panic(err)
 	}
 
 	el.textAtlas = text.NewAtlas(face, text.ASCII)
 
-	el.fpsText = el._generateTextElement(pixel.V(-60, 250))
-	el.scoreText = el._generateTextElement(pixel.V(-60, 300))
-	el.debugText = el._generateTextElement(pixel.V(-60, 350))
-	el.mousePosText = el._generateTextElement(pixel.V(-60, 400))
+	debugFace, err := loadTTF("resources/fonts/Chibi.ttf", 15)
+	if err != nil {
+		panic(err)
+	}
+
+	el.debugAtlas = text.NewAtlas(debugFace, text.ASCII)
+
+
+	el.fpsText = el._generateTextElement(pixel.V(-60, 250), el.debugAtlas)
+	el.scoreText = el._generateTextElement(pixel.V(-60, 400), el.textAtlas)
+	el.debugText = el._generateTextElement(pixel.V(-60, 350), el.debugAtlas)
+	el.mousePosText = el._generateTextElement(pixel.V(-60, 300), el.debugAtlas)
 
 	return nil
 }
