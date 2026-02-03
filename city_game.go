@@ -94,6 +94,8 @@ func run() {
 				return;
 			}
 
+			time.Sleep(200 * time.Millisecond)
+
 		case GameState_Running:
 
 			gameData.debugMode = false
@@ -200,6 +202,7 @@ func run() {
 					}
 
 					if x == logicalX && y == logicalY {
+						tile.sprite.DrawColorMask(gameData.tileBatch, pixel.IM.Scaled(pixel.V(0.0, 0.0), 1.05).Moved(mousePos), colornames.Red)
 						tile.sprite.Draw(gameData.tileBatch, pixel.IM.Moved(mousePos))
 					}
 				}
