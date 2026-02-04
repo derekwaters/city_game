@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"math"
 	"fmt"
+	"image/color"
 
 	"github.com/gopxl/pixel/v2"
 	"github.com/gopxl/pixel/v2/backends/opengl"
@@ -17,6 +18,7 @@ import (
 const BOARD_SIZE		= 8
 const TILE_WIDTH		= 132.0
 const TILE_HEIGHT		= 66.0
+const ALPHA_FADE_AMOUNT	= 2
 
 type GameState 		int
 type MenuSelection 	int
@@ -45,8 +47,10 @@ var MenuSelectionName = map[MenuSelection]string{
 }
 
 type CityGame_Tile struct {
-	sprite	*pixel.Sprite
-	details	*SpriteSheet_SubTexture
+	sprite				*pixel.Sprite
+	details				*SpriteSheet_SubTexture
+	highlightColor		color.RGBA
+	highlightTile		bool
 }
 
 type CityGame_Elements struct {
@@ -240,21 +244,18 @@ func (el *CityGame_Elements) checkAddCurrentTile (x int, y int, tile *CityGame_T
 		// Score Checks!
 		thisTile := &el.textureAtlas.TileGroups[el.currentTileGroup].SubTextures[el.currentTile]
 
-		if x > 0 && el.boardTiles[x - 1][y].sprite != nil && 
-			thisTile.JoinTL.compatibleWith(el.boardTiles[x - 1][y].details.JoinBR) {
+		if (x > 0 && el.boardTiles[x - 1][y].sprite != nil && 
+			thisTile.JoinTL.compatibleWith(el.boardTiles[x - 1][y].details.JoinBR)) ||
+		   (x < (BOARD_SIZE - 1) && el.boardTiles[x + 1][y].sprite != nil && 
+			thisTile.JoinBR.compatibleWith(el.boardTiles[x + 1][y].details.JoinTL)) ||
+		   (y > 0 && el.boardTiles[x][y - 1].sprite != nil && 
+			thisTile.JoinBL.compatibleWith(el.boardTiles[x][y - 1].details.JoinTR)) ||
+		   (y < (BOARD_SIZE - 1) && el.boardTiles[x][y + 1].sprite != nil && 
+			thisTile.JoinTR.compatibleWith(el.boardTiles[x][y + 1].details.JoinBL)) {
 			el.score++
-		}
-		if x < (BOARD_SIZE - 1) && el.boardTiles[x + 1][y].sprite != nil && 
-			thisTile.JoinBR.compatibleWith(el.boardTiles[x + 1][y].details.JoinTL) {
-			el.score++
-		}
-		if y > 0 && el.boardTiles[x][y - 1].sprite != nil && 
-			thisTile.JoinBL.compatibleWith(el.boardTiles[x][y - 1].details.JoinTR) {
-			el.score++
-		}
-		if y < (BOARD_SIZE - 1) && el.boardTiles[x][y + 1].sprite != nil && 
-			thisTile.JoinTR.compatibleWith(el.boardTiles[x][y + 1].details.JoinBL) {
-			el.score++
+			el.boardTiles[x][y].highlightTile = true
+			el.boardTiles[x][y].highlightColor = colornames.Yellow
+			el.boardTiles[x][y].highlightColor.A = 0
 		}
 	
 		if el.getTotalTileCount() == (BOARD_SIZE * BOARD_SIZE) {
@@ -294,6 +295,21 @@ func(el *CityGame_Elements) resetGame() {
 		}
 	}
 	el.getNextTileGroup()
+}
+
+
+func(el *CityGame_Elements) doFades() {
+	for x := 0; x < BOARD_SIZE; x++ {
+		for y := 0; y < BOARD_SIZE; y++ {
+			if el.boardTiles[x][y].highlightTile {
+				if el.boardTiles[x][y].highlightColor.A < (0xFF - ALPHA_FADE_AMOUNT) {
+					el.boardTiles[x][y].highlightColor.A += ALPHA_FADE_AMOUNT
+				} else {
+					el.boardTiles[x][y].highlightTile = false
+				}
+			}
+		}
+	}
 }
 
 func InitGameElements() (*CityGame_Elements, error) {

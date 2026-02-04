@@ -198,9 +198,19 @@ func run() {
 						// Might need to also add the height of the tile here...
 						mat := pixel.IM.Moved(mappedPos)
 
-						boardTile.sprite.Draw(gameData.tileBatch, mat)
+
+						if boardTile.highlightTile {
+							slog.Info("Tile: ", "X", x, "Y", y, "highlight", boardTile.highlightColor)
+							boardTile.sprite.DrawColorMask(gameData.tileBatch, mat, boardTile.highlightColor)
+						} else {
+							boardTile.sprite.Draw(gameData.tileBatch, mat)
+						}
 					}
 
+					// Draw any highlighted pieces
+
+
+					// Now draw the current piece
 					if x == logicalX && y == logicalY {
 						tile.sprite.DrawColorMask(gameData.tileBatch, pixel.IM.Scaled(pixel.V(0.0, 0.0), 1.05).Moved(mousePos), colornames.Red)
 						tile.sprite.Draw(gameData.tileBatch, pixel.IM.Moved(mousePos))
@@ -209,6 +219,8 @@ func run() {
 			}
 			
 			gameData.tileBatch.Draw(win)
+
+			gameData.doFades()
 
 			gameData.frames++
 			select {
